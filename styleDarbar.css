@@ -1,0 +1,24 @@
+/* style.css */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@600&family=Noto+Sans+Gurmukhi:wght@400;700&display=swap');
+
+.gurmukhi { font-family: 'Noto Sans Gurmukhi', serif; }
+.crimson { font-family: 'Crimson Text', serif; }
+
+.main { background-color: #fdfaf5; }
+
+.hero {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, #fff5e6 0%, #ffffff 100%);
+    border-bottom: 2px solid #eec07b;
+    margin-bottom: 2rem;
+}
+
+.darbar-card {
+    background: white;
+    border-left: 5px solid #eec07b;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin-bottom: 1rem;
+}

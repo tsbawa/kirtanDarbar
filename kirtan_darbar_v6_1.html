@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kirtan Darbar - ਕੀਰਤਨ ਦਰਬਾਰ</title>
+<meta name="description" content="Find upcoming Gurbani Kirtan Darbars near you.">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Gurmukhi:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#C9922A;--gold-light:#F0C96A;--gold-dark:#8B6010;--deep:#1A0E2E;--deep2:#2D1B4E;--surface:#F9F5EE;--surface2:#F2EBD9;--text:#1C1008;--text2:#5C4A2A;--text3:#8C7A5A;--border:#D4B87A;--border-light:#E8D9B0;--white:#FFFFFF;--accent:#7B3FA0;--danger:#c0392b;--danger-light:#fdecea;--success:#27ae60}
+body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);min-height:100vh}
+.gurmukhi{font-family:'Noto Serif Gurmukhi',serif}
+.crimson{font-family:'Crimson Pro',serif}
+
+/* LOADING */
+.loading-overlay{position:fixed;inset:0;background:var(--deep);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;transition:opacity .5s}
+.loading-overlay.hide{opacity:0;pointer-events:none}
+.loading-ik{font-size:3rem;color:var(--gold);animation:pulse 1.5s infinite}
+.loading-text{color:var(--gold-light);font-size:.9rem}
+.spinner{width:36px;height:36px;border:3px solid rgba(201,146,42,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* AUTH */
+.auth-screen{position:fixed;inset:0;background:linear-gradient(160deg,var(--deep) 0%,var(--deep2) 60%,#3D1060 100%);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem}
+.auth-screen.show{display:flex}
+.auth-box{background:var(--white);border-radius:20px;padding:2rem;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.auth-icon{font-size:2.5rem;margin-bottom:.5rem}
+.auth-title{font-family:'Crimson Pro',serif;font-size:1.5rem;color:var(--deep2);font-weight:600;margin-bottom:.2rem}
+.auth-sub{font-size:.82rem;color:var(--text3);margin-bottom:1.4rem;line-height:1.5}
+.auth-error{background:var(--danger-light);border:1px solid rgba(192,57,43,.2);color:var(--danger);border-radius:8px;padding:.5rem .8rem;font-size:.8rem;margin-bottom:.8rem;display:none;text-align:left}
+.auth-success{background:#e8f5e9;border:1px solid #a5d6a7;color:#2e7d32;border-radius:8px;padding:.5rem .8rem;font-size:.8rem;margin-bottom:.8rem;display:none;text-align:left}
+.auth-input{width:100%;padding:.6rem .9rem;border:1.5px solid var(--border-light);border-radius:10px;font-size:.9rem;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--surface);outline:none;margin-bottom:.7rem;text-align:center}
+.auth-input:focus{border-color:var(--gold)}
+.auth-btn{width:100%;background:var(--deep2);color:var(--gold-light);padding:.65rem;border-radius:10px;border:none;cursor:pointer;font-size:.9rem;font-family:'DM Sans',sans-serif;font-weight:600;margin-bottom:.5rem;transition:background .2s}
+.auth-btn:hover{background:var(--deep)}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed}
+.auth-btn.secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.auth-btn.secondary:hover{border-color:var(--gold);color:var(--gold-dark)}
+.auth-skip{background:none;border:none;color:var(--text3);font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;margin-top:.3rem}
+.otp-inputs{display:flex;gap:.5rem;justify-content:center;margin-bottom:.9rem}
+.otp-input{width:42px;height:48px;border:1.5px solid var(--border-light);border-radius:8px;font-size:1.2rem;font-weight:600;text-align:center;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--surface);outline:none}
+.otp-input:focus{border-color:var(--gold);background:var(--white)}
+.resend-link{font-size:.75rem;color:var(--text3);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:'DM Sans',sans-serif;margin-top:.3rem}
+.auth-step{display:none}.auth-step.show{display:block}
+
+/* NAV */
+nav{background:var(--deep);padding:0 1rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;min-height:60px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+.nav-brand{display:flex;align-items:center;gap:8px;cursor:pointer}
+.nav-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--deep);font-weight:700;flex-shrink:0}
+.nav-title{color:var(--gold-light);font-size:1rem;font-weight:600}
+.nav-sub{font-size:.6rem;color:var(--gold-light);opacity:.7;display:block;line-height:1}
+.nav-links{display:flex;gap:.25rem;flex-wrap:wrap;align-items:center}
+.nav-btn{background:transparent;border:1px solid rgba(201,146,42,.35);color:var(--gold-light);padding:.3rem .75rem;border-radius:20px;cursor:pointer;font-size:.78rem;transition:all .2s;font-family:'DM Sans',sans-serif}
+.nav-btn:hover,.nav-btn.active{background:var(--gold);color:var(--deep);border-color:var(--gold)}
+.nav-add{background:var(--gold);color:var(--deep);padding:.35rem .9rem;border-radius:20px;border:none;cursor:pointer;font-weight:600;font-size:.8rem;font-family:'DM Sans',sans-serif;display:none}
+.nav-add:hover{background:var(--gold-light)}
+.user-badge{background:rgba(201,146,42,.15);border:1px solid rgba(201,146,42,.4);color:var(--gold-light);padding:.2rem .6rem;border-radius:12px;font-size:.7rem;display:none;align-items:center;gap:.3rem}
+.db-status{font-size:.68rem;color:var(--gold-light);opacity:.6;display:flex;align-items:center;gap:.3rem}
+.db-dot{width:6px;height:6px;border-radius:50%;background:var(--success)}
+.db-dot.offline{background:var(--danger)}
+.lang-sel{display:flex;gap:3px}
+.lang-btn{background:transparent;border:1px solid rgba(201,146,42,.3);color:rgba(240,201,106,.7);padding:.18rem .45rem;border-radius:12px;cursor:pointer;font-size:.7rem;font-family:'DM Sans',sans-serif}
+.lang-btn.active{background:rgba(201,146,42,.2);color:var(--gold-light);border-color:var(--gold)}
+
+/* PAGES */
+.page{display:none;min-height:calc(100vh - 60px)}
+.page.active{display:block}
+
+/* HERO */
+.hero{background:linear-gradient(160deg,var(--deep) 0%,var(--deep2) 60%,#3D1060 100%);padding:2.5rem 1.5rem 2rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='rgba(201,146,42,0.08)' stroke-width='1'%3E%3Ccircle cx='30' cy='30' r='25'/%3E%3Ccircle cx='30' cy='30' r='15'/%3E%3Cline x1='30' y1='5' x2='30' y2='55'/%3E%3Cline x1='5' y1='30' x2='55' y2='30'/%3E%3C/g%3E%3C/svg%3E") repeat;opacity:.5}
+.hero-ik{font-size:2.5rem;color:var(--gold);line-height:1;margin-bottom:.5rem;position:relative}
+.hero-title{font-family:'Crimson Pro',serif;font-size:2rem;color:var(--white);font-weight:600;position:relative;margin-bottom:.25rem}
+.hero-sub{color:var(--gold-light);font-size:.9rem;opacity:.8;position:relative}
+.search-bar{max-width:560px;margin:1.5rem auto 0;position:relative;padding:0 1rem}
+.search-bar input{width:100%;padding:.7rem 1rem .7rem 3rem;border-radius:30px;border:1.5px solid var(--border);background:var(--white);font-size:.95rem;font-family:'DM Sans',sans-serif;color:var(--text);outline:none}
+.search-bar input:focus{border-color:var(--gold)}
+.search-bar .s-icon{position:absolute;left:1.9rem;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.search-bar button{position:absolute;right:1.5rem;top:50%;transform:translateY(-50%);background:var(--gold);border:none;color:var(--deep);padding:.4rem .9rem;border-radius:20px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:'DM Sans',sans-serif}
+
+/* SECTIONS */
+.section-wrap{max-width:1100px;margin:0 auto;padding:1.5rem 1rem}
+.sec-header{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem}
+.sec-line{flex:1;height:1px;background:var(--border-light)}
+.sec-title{font-size:.78rem;font-weight:600;color:var(--text2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase}
+.sec-dot{width:8px;height:8px;background:var(--gold);border-radius:50%;flex-shrink:0}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1.2rem}
+
+/* CARDS */
+.darbar-card{background:var(--white);border:1px solid var(--border-light);border-radius:14px;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.darbar-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.card-click{cursor:pointer}
+.card-bg{height:120px;background:linear-gradient(135deg,var(--deep2),#3D1060);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.card-bg-text{position:absolute;color:var(--gold-light);text-align:center;padding:1rem;font-family:'Noto Serif Gurmukhi',serif;font-size:.82rem;line-height:1.5;text-shadow:0 1px 4px rgba(0,0,0,.5);z-index:1}
+.card-badge{position:absolute;top:8px;right:8px;padding:.2rem .55rem;border-radius:20px;font-size:.68rem;font-weight:600;z-index:2}
+.badge-upcoming{background:rgba(123,63,160,.9);color:#E8C8FF}
+.badge-past{background:rgba(0,0,0,.5);color:#ccc}
+.card-body{padding:.9rem}
+.card-title{font-weight:600;font-size:.95rem;color:var(--text);margin-bottom:.25rem;line-height:1.3}
+.card-sub{font-size:.78rem;color:var(--text2);margin-bottom:.5rem}
+.card-meta{display:flex;flex-direction:column;gap:.2rem}
+.meta-row{display:flex;align-items:flex-start;gap:.35rem;font-size:.76rem;color:var(--text3)}
+.card-raagis{display:flex;gap:.25rem;flex-wrap:wrap;margin-top:.6rem}
+.raagi-chip{background:var(--surface2);color:var(--text2);font-size:.68rem;padding:.15rem .5rem;border-radius:12px;border:1px solid var(--border-light)}
+.editor-actions{display:flex;gap:.4rem;padding:.6rem .9rem;border-top:1px solid var(--border-light);background:var(--surface);flex-wrap:wrap}
+.btn-edit{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:.3rem .8rem;border-radius:16px;cursor:pointer;font-size:.75rem;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .2s}
+.btn-edit:hover{border-color:var(--gold);color:var(--gold-dark)}
+.btn-delete{background:var(--danger-light);border:1px solid rgba(192,57,43,.2);color:var(--danger);padding:.3rem .8rem;border-radius:16px;cursor:pointer;font-size:.75rem;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-delete:hover{background:var(--danger);color:white}
+.btn-flyer{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:var(--success);padding:.3rem .8rem;border-radius:16px;cursor:pointer;font-size:.75rem;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-flyer:hover{background:var(--success);color:white}
+.empty{text-align:center;padding:3rem 1rem;color:var(--text3)}
+.empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.5}
+
+/* DETAIL */
+.detail-hero{min-height:260px;position:relative;display:flex;align-items:flex-end;overflow:hidden}
+.detail-hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,var(--deep),#4A1A70)}
+.detail-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,5,20,.9) 0%,rgba(10,5,20,.3) 60%,transparent 100%)}
+.detail-hero-content{position:relative;padding:1.5rem;width:100%;z-index:2}
+.detail-gurbani{font-family:'Noto Serif Gurmukhi',serif;color:var(--gold-light);font-size:1rem;line-height:1.7;margin-bottom:.6rem;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.detail-title{font-family:'Crimson Pro',serif;font-size:1.75rem;color:var(--white);font-weight:600;line-height:1.2;margin-bottom:.3rem}
+.detail-subtitle{color:rgba(240,201,106,.8);font-size:.9rem;margin-bottom:.15rem}
+.detail-back{position:absolute;top:1rem;left:1rem;z-index:10;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);color:white;padding:.3rem .75rem;border-radius:20px;cursor:pointer;font-size:.78rem;font-family:'DM Sans',sans-serif}
+.detail-editor-bar{position:absolute;top:1rem;right:1rem;z-index:10;display:flex;gap:.4rem;flex-wrap:wrap}
+.detail-body{max-width:900px;margin:0 auto;padding:1.2rem 1rem}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.7rem;margin-bottom:1.2rem}
+.info-card{background:var(--white);border:1px solid var(--border-light);border-radius:10px;padding:.8rem 1rem}
+.info-label{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem}
+.info-value{font-size:.88rem;color:var(--text);font-weight:500;line-height:1.5}
+.map-link{color:var(--gold-dark);font-size:.82rem;display:inline-flex;align-items:center;gap:.3rem;margin-top:.25rem;cursor:pointer;border:none;background:none;padding:0;font-family:'DM Sans',sans-serif;text-decoration:underline}
+.map-link:hover{color:var(--accent)}
+.phone-link{color:var(--accent);cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:.78rem;display:inline-flex;align-items:center;gap:.25rem}
+.phone-link:hover{text-decoration:underline}
+.raagis-section{margin-top:1.2rem}
+.raagis-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.9rem;margin-top:.9rem}
+.raagi-card{background:var(--white);border:1px solid var(--border-light);border-radius:12px;overflow:hidden}
+.raagi-photo{width:100%;height:120px;background:linear-gradient(135deg,var(--deep2),var(--accent));display:flex;align-items:center;justify-content:center;overflow:hidden}
+.raagi-photo img{width:100%;height:100%;object-fit:cover}
+.raagi-initials{color:var(--gold-light);font-size:1.8rem;font-family:'Noto Serif Gurmukhi',serif}
+.raagi-info{padding:.65rem}
+.raagi-name{font-weight:600;font-size:.85rem;color:var(--text)}
+.raagi-title-badge{font-size:.65rem;color:var(--gold-dark);background:var(--surface2);padding:.1rem .4rem;border-radius:10px;display:inline-block;margin:.12rem 0 .3rem}
+.raagi-desc{font-size:.72rem;color:var(--text3);line-height:1.4}
+.raagi-timing{font-size:.68rem;color:var(--text2);margin-top:.3rem;display:flex;align-items:center;gap:.3rem}
+.org-card{background:var(--white);border:1px solid var(--border-light);border-radius:10px;padding:1rem;margin-top:.7rem}
+.org-reason{background:var(--surface2);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:.75rem 1rem;margin-top:.9rem;font-size:.9rem;color:var(--text2);font-family:'Crimson Pro',serif;font-style:italic;line-height:1.6}
+
+/* SHARE & ACTION BARS */
+.share-bar{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.9rem}
+.share-btn{display:inline-flex;align-items:center;gap:.3rem;padding:.33rem .75rem;border-radius:20px;font-size:.74rem;font-family:'DM Sans',sans-serif;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text2);transition:all .2s;font-weight:500}
+.share-btn.wa{border-color:#25D366;color:#25D366}.share-btn.wa:hover{background:#25D366;color:white}
+.share-btn.fb{border-color:#1877F2;color:#1877F2}.share-btn.fb:hover{background:#1877F2;color:white}
+.share-btn.tw{border-color:#000;color:#000}.share-btn.tw:hover{background:#000;color:white}
+.share-btn.cp{border-color:var(--accent);color:var(--accent)}.share-btn.cp:hover{background:var(--accent);color:white}
+.share-btn.flyer{border-color:var(--success);color:var(--success)}.share-btn.flyer:hover{background:var(--success);color:white}
+
+/* FORM */
+.form-wrap{max-width:780px;margin:0 auto;padding:1.2rem 1rem 2rem}
+.form-title{font-family:'Crimson Pro',serif;font-size:1.5rem;color:var(--deep2);margin-bottom:.25rem;font-weight:600}
+.form-sub{color:var(--text3);font-size:.83rem;margin-bottom:1.2rem}
+.form-section{background:var(--white);border:1px solid var(--border-light);border-radius:12px;padding:1.1rem;margin-bottom:.9rem}
+.form-section-title{font-size:.75rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;padding-bottom:.45rem;border-bottom:1px solid var(--border-light)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.7rem}
+.form-row.single{grid-template-columns:1fr}
+.form-row.triple{grid-template-columns:1fr 1fr 1fr}
+.form-row.quad{grid-template-columns:1fr 1fr 1fr 1fr}
+label{display:block;font-size:.76rem;color:var(--text2);margin-bottom:.25rem;font-weight:500}
+input[type=text],input[type=date],input[type=time],input[type=tel],input[type=email],textarea,select{width:100%;padding:.5rem .75rem;border:1px solid var(--border-light);border-radius:8px;font-size:.86rem;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--surface);outline:none;transition:border .2s}
+input:focus,textarea:focus,select:focus{border-color:var(--gold)}
+input.error{border-color:var(--danger)!important}
+.field-error{color:var(--danger);font-size:.7rem;margin-top:.2rem;display:none}
+textarea{resize:vertical;min-height:70px}
+.file-input-wrap{border:1.5px dashed var(--border);border-radius:8px;padding:.7rem;text-align:center;cursor:pointer;color:var(--text3);font-size:.8rem;background:var(--surface);transition:all .2s}
+.file-input-wrap:hover{border-color:var(--gold)}
+.file-input-wrap input{display:none}
+.upload-progress{height:4px;background:var(--border-light);border-radius:4px;margin-top:.4rem;overflow:hidden;display:none}
+.upload-bar{height:100%;background:var(--gold);border-radius:4px;transition:width .3s;width:0}
+/* PHOTO PREVIEW */
+.photo-preview{width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-top:.5rem;display:none;border:1px solid var(--border-light)}
+.raagi-photo-preview{width:80px;height:80px;object-fit:cover;border-radius:8px;margin-top:.5rem;display:none;border:1px solid var(--border-light)}
+/* DATE ENTRY BLOCK */
+.event-date-block{background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:.8rem;margin-bottom:.6rem;position:relative}
+.event-date-block .clash-warning{color:var(--danger);font-size:.72rem;margin-top:.3rem;display:none}
+.raagi-block{background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:.9rem;margin-bottom:.7rem}
+.remove-btn{background:var(--danger-light);border:1px solid rgba(192,57,43,.2);color:var(--danger);cursor:pointer;font-size:.72rem;padding:.22rem .55rem;border-radius:12px;font-family:'DM Sans',sans-serif;transition:all .2s}
+.remove-btn:hover{background:var(--danger);color:white}
+.add-more-btn{background:none;border:1.5px dashed var(--border);color:var(--text2);padding:.45rem 1rem;border-radius:8px;cursor:pointer;width:100%;font-size:.83rem;font-family:'DM Sans',sans-serif;transition:all .2s;margin-top:.25rem}
+.add-more-btn:hover{border-color:var(--gold);color:var(--gold-dark)}
+.phone-row{display:flex;gap:.4rem;margin-bottom:.45rem;align-items:center}
+.phone-row input{flex:1}
+.form-actions{display:flex;gap:.7rem;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap}
+.btn-cancel-form{background:none;border:1px solid var(--border);color:var(--text2);padding:.55rem 1.1rem;border-radius:24px;cursor:pointer;font-size:.88rem;font-family:'DM Sans',sans-serif}
+.btn-preview{background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);padding:.55rem 1.3rem;border-radius:24px;cursor:pointer;font-size:.88rem;font-family:'DM Sans',sans-serif;font-weight:500}
+.btn-preview:hover{border-color:var(--gold);color:var(--gold-dark)}
+.btn-submit{background:var(--deep2);color:var(--gold-light);padding:.55rem 1.5rem;border-radius:24px;border:none;cursor:pointer;font-size:.88rem;font-family:'DM Sans',sans-serif;font-weight:600;transition:background .2s}
+.btn-submit:hover{background:var(--deep)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+.row-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+
+/* DATE INPUT HELPER — dd/mm/yyyy display */
+.date-input-wrap{position:relative}
+.date-display{width:100%;padding:.5rem .75rem;border:1px solid var(--border-light);border-radius:8px;font-size:.86rem;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.date-display:hover{border-color:var(--gold)}
+.date-display input[type=date]{position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer}
+
+/* ADMIN PANEL */
+.admin-wrap{max-width:900px;margin:0 auto;padding:1.5rem 1rem}
+.admin-title{font-family:'Crimson Pro',serif;font-size:1.5rem;color:var(--deep2);margin-bottom:1.5rem;font-weight:600}
+.users-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:12px;overflow:hidden;border:1px solid var(--border-light)}
+.users-table th{background:var(--deep2);color:var(--gold-light);padding:.7rem 1rem;font-size:.78rem;text-align:left;font-weight:600;letter-spacing:.04em}
+.users-table td{padding:.7rem 1rem;font-size:.84rem;border-bottom:1px solid var(--border-light);color:var(--text)}
+.users-table tr:last-child td{border-bottom:none}
+.users-table tr:hover td{background:var(--surface)}
+.role-badge{padding:.18rem .55rem;border-radius:12px;font-size:.7rem;font-weight:600}
+.role-admin{background:rgba(201,146,42,.15);color:var(--gold-dark)}
+.role-editor{background:rgba(123,63,160,.1);color:var(--accent)}
+.status-active{color:var(--success);font-size:.8rem}
+.status-inactive{color:var(--danger);font-size:.8rem}
+.add-user-form{background:var(--white);border:1px solid var(--border-light);border-radius:12px;padding:1.2rem;margin-bottom:1.5rem}
+.add-user-title{font-size:.8rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem;padding-bottom:.45rem;border-bottom:1px solid var(--border-light)}
+.user-form-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.7rem;align-items:end}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal-box{background:var(--white);border-radius:16px;max-width:700px;width:100%;max-height:88vh;overflow-y:auto}
+.modal-header{padding:1.1rem 1.4rem;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:1}
+.modal-header h3{font-family:'Crimson Pro',serif;font-size:1.25rem;color:var(--deep2);font-weight:600}
+.modal-close{background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--text3)}
+.modal-body{padding:1.4rem}
+.modal-actions{padding:.9rem 1.4rem;border-top:1px solid var(--border-light);display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;position:sticky;bottom:0;background:var(--white)}
+.btn-confirm{background:var(--gold);color:var(--deep);padding:.5rem 1.4rem;border-radius:20px;border:none;cursor:pointer;font-weight:600;font-family:'DM Sans',sans-serif}
+.btn-back{background:none;border:1px solid var(--border);color:var(--text2);padding:.5rem 1.1rem;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.confirm-box{background:var(--white);border-radius:14px;max-width:380px;width:100%;padding:1.5rem;text-align:center}
+.confirm-icon{font-size:2rem;margin-bottom:.5rem}
+.confirm-title{font-weight:600;font-size:1rem;color:var(--text);margin-bottom:.4rem}
+.confirm-desc{font-size:.83rem;color:var(--text3);margin-bottom:1.2rem;line-height:1.5}
+.confirm-btns{display:flex;gap:.6rem;justify-content:center}
+.btn-danger{background:var(--danger);color:white;border:none;padding:.5rem 1.4rem;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600}
+
+/* SEARCH */
+.search-page-wrap{max-width:900px;margin:0 auto;padding:1.5rem 1rem}
+.search-big{display:flex;gap:.7rem;margin-bottom:1.3rem;flex-wrap:wrap}
+.search-big input{flex:1;min-width:180px;padding:.65rem 1rem;border:1.5px solid var(--border);border-radius:30px;font-size:.93rem;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--white);outline:none}
+.search-big input:focus{border-color:var(--gold)}
+.search-big button{background:var(--deep2);color:var(--gold-light);border:none;padding:.65rem 1.4rem;border-radius:30px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600}
+.results-count{font-size:.8rem;color:var(--text3);margin-bottom:.9rem}
+.contacts-list{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem}
+.contact-chip{background:var(--surface2);border:1px solid var(--border-light);border-radius:20px;padding:.22rem .65rem;font-size:.76rem;color:var(--text2);cursor:pointer;transition:all .2s}
+.contact-chip:hover{background:var(--accent);color:white;border-color:var(--accent)}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--deep);color:var(--gold-light);padding:.75rem 1.3rem;border-radius:10px;font-size:.86rem;z-index:400;animation:slideUp .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:320px;line-height:1.4}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* FLYER CANVAS (hidden, used for PDF generation) */
+#flyer-canvas{display:none}
+
+@media(max-width:600px){
+  .form-row,.form-row.triple,.form-row.quad{grid-template-columns:1fr}
+  .user-form-row{grid-template-columns:1fr}
+  .detail-title{font-size:1.25rem}
+  .hero-title{font-size:1.4rem}
+  .cards-grid{grid-template-columns:1fr}
+  .raagis-grid{grid-template-columns:repeat(2,1fr)}
+  nav{padding:0 .5rem}
+}
+</style>
+</head>
+<body>
+
+<canvas id="flyer-canvas"></canvas>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-ik gurmukhi">੧ਓ</div>
+  <div class="spinner"></div>
+  <div class="loading-text gurmukhi">ਕੀਰਤਨ ਦਰਬਾਰ ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...</div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-box">
+    <div class="auth-icon">☬</div>
+    <div class="auth-title crimson">Kirtan Darbar</div>
+    <div class="auth-step show" id="step-choose">
+      <div class="auth-sub">Welcome! Login to manage Darbars or continue as a visitor.</div>
+      <button class="auth-btn" onclick="showStep('step-email')">Login / Sign In</button>
+      <button class="auth-btn secondary" onclick="skipLogin()" style="margin-top:.3rem">Continue as Visitor</button>
+    </div>
+    <div class="auth-step" id="step-email">
+      <div class="auth-sub">Enter your registered email to receive a 6-digit OTP.</div>
+      <div class="auth-error" id="email-error"></div>
+      <input type="email" class="auth-input" id="login-email" placeholder="your@email.com" onkeyup="if(event.key==='Enter')sendOTP()">
+      <button class="auth-btn" id="send-otp-btn" onclick="sendOTP()">Send OTP Code</button>
+      <button class="auth-btn secondary" onclick="showStep('step-choose')" style="margin-top:.3rem">Back</button>
+    </div>
+    <div class="auth-step" id="step-otp">
+      <div class="auth-sub" id="otp-sub">Enter the 6-digit code sent to your email.</div>
+      <div class="auth-error" id="otp-error"></div>
+      <div class="auth-success" id="otp-success"></div>
+      <div class="otp-inputs">
+        <input type="text" class="otp-input" maxlength="1" id="otp0" oninput="otpInput(this,0)" onkeydown="otpKeydown(this,0)">
+        <input type="text" class="otp-input" maxlength="1" id="otp1" oninput="otpInput(this,1)" onkeydown="otpKeydown(this,1)">
+        <input type="text" class="otp-input" maxlength="1" id="otp2" oninput="otpInput(this,2)" onkeydown="otpKeydown(this,2)">
+        <input type="text" class="otp-input" maxlength="1" id="otp3" oninput="otpInput(this,3)" onkeydown="otpKeydown(this,3)">
+        <input type="text" class="otp-input" maxlength="1" id="otp4" oninput="otpInput(this,4)" onkeydown="otpKeydown(this,4)">
+        <input type="text" class="otp-input" maxlength="1" id="otp5" oninput="otpInput(this,5)" onkeydown="otpKeydown(this,5)">
+      </div>
+      <button class="auth-btn" id="verify-otp-btn" onclick="verifyOTP()">Verify & Login</button>
+      <br><button class="resend-link" id="resend-btn" onclick="resendOTP()">Resend OTP</button>
+      <button class="auth-btn secondary" onclick="showStep('step-email')" style="margin-top:.5rem">Change Email</button>
+    </div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-brand" onclick="goHome()">
+    <div class="nav-logo">☬</div>
+    <div><div class="nav-title">Kirtan Darbar</div><span class="nav-sub gurmukhi">ਕੀਰਤਨ ਦਰਬਾਰ</span></div>
+  </div>
+  <div class="nav-links">
+    <button class="nav-btn active" id="nb-home" onclick="showPage('home')">Home</button>
+    <button class="nav-btn" id="nb-search" onclick="showPage('search')">Search</button>
+    <button class="nav-add" id="nav-add-btn" onclick="startAddNew()">+ Add Darbar</button>
+    <button class="nav-btn" id="nb-admin" onclick="showPage('admin')" style="display:none">👥 Users</button>
+    <span class="user-badge" id="user-badge">👤 <span id="user-badge-text"></span></span>
+    <button class="nav-btn" onclick="handleAuthBtn()" id="auth-nav-btn" style="font-size:.7rem">Login</button>
+    <button class="share-btn cp" onclick="shareWebsite()" style="padding:.3rem .7rem;font-size:.72rem;border-radius:20px;border:1.5px solid var(--accent);color:var(--accent)">🔗 Share</button>
+    <div class="db-status"><div class="db-dot" id="db-dot"></div><span id="db-label">Firebase</span></div>
+  </div>
+  <div class="lang-sel">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('pa')">ਪੰਜਾਬੀ</button>
+    <button class="lang-btn" onclick="setLang('hi')">हिन्दी</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-ik gurmukhi">੧ਓ</div>
+    <div class="hero-title crimson">Kirtan Darbar</div>
+    <div class="hero-sub gurmukhi">ਨਾਮ ਜਪੋ, ਕਿਰਤ ਕਰੋ, ਵੰਡ ਛਕੋ</div>
+    <div class="search-bar">
+      <span class="s-icon">🔍</span>
+      <input type="text" id="home-search" placeholder="Search by city or place…" onkeyup="liveFilter(this.value)">
+      <button onclick="goSearch()">Search</button>
+    </div>
+  </div>
+  <div class="section-wrap">
+    <div class="sec-header"><div class="sec-line"></div><div class="sec-dot"></div><div class="sec-title">Upcoming Darbars</div><div class="sec-dot"></div><div class="sec-line"></div></div>
+    <div class="cards-grid" id="upcoming-cards"></div>
+    <div id="upcoming-empty" class="empty" style="display:none"><div class="empty-icon">🎵</div><div>No upcoming Darbars yet.</div></div>
+    <div style="margin-top:2rem">
+      <div class="sec-header"><div class="sec-line"></div><div class="sec-dot"></div><div class="sec-title">Past Darbars</div><div class="sec-dot"></div><div class="sec-line"></div></div>
+      <div class="cards-grid" id="past-cards"></div>
+      <div id="past-empty" class="empty" style="display:none"><div style="color:var(--text3);font-size:.88rem">No past Darbars recorded yet.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div id="page-detail" class="page">
+  <div class="detail-hero">
+    <div class="detail-hero-bg"><img id="detail-bg-img" src="" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45"></div>
+    <div class="detail-hero-overlay"></div>
+    <button class="detail-back" onclick="showPage('home')">← Back</button>
+    <div class="detail-editor-bar" id="detail-editor-bar"></div>
+    <div class="detail-hero-content">
+      <div class="detail-gurbani gurmukhi" id="detail-gurbani"></div>
+      <div class="detail-title crimson" id="detail-title"></div>
+      <div class="detail-subtitle" id="detail-sub1"></div>
+      <div class="detail-subtitle" id="detail-sub2"></div>
+    </div>
+  </div>
+  <div class="detail-body">
+    <div class="share-bar" id="detail-share-bar"></div>
+    <div class="info-grid" id="detail-info-grid" style="margin-top:1rem"></div>
+    <div class="raagis-section">
+      <div class="sec-header"><div class="sec-line"></div><div class="sec-dot"></div><div class="sec-title">Raagis</div><div class="sec-dot"></div><div class="sec-line"></div></div>
+      <div class="raagis-grid" id="detail-raagis"></div>
+    </div>
+    <div style="margin-top:1.2rem">
+      <div class="sec-header"><div class="sec-line"></div><div class="sec-dot"></div><div class="sec-title">Organisers</div><div class="sec-dot"></div><div class="sec-line"></div></div>
+      <div class="org-card" id="detail-org"></div>
+    </div>
+    <div id="detail-reason-wrap" style="margin-top:.8rem"></div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div id="page-search" class="page">
+  <div class="search-page-wrap">
+    <div style="margin-bottom:1.3rem">
+      <h2 style="font-family:'Crimson Pro',serif;font-size:1.45rem;color:var(--deep2);margin-bottom:.25rem">Search Kirtan Darbars</h2>
+      <p style="color:var(--text3);font-size:.83rem">Find Darbars near your city or a specific location</p>
+    </div>
+    <div class="search-big">
+      <input type="text" id="search-input" placeholder="Enter city, locality or place…" oninput="doSearch(this.value)">
+      <button onclick="doSearch(document.getElementById('search-input').value)">Search</button>
+    </div>
+    <div class="results-count" id="results-count"></div>
+    <div class="cards-grid" id="search-results"></div>
+  </div>
+</div>
+
+<!-- ADD/EDIT FORM -->
+<div id="page-add" class="page">
+  <div class="form-wrap">
+    <div class="form-title crimson" id="form-page-title">Add New Kirtan Darbar</div>
+    <div class="form-sub">Fields marked * are required. Dates are entered in dd/mm/yyyy format.</div>
+
+    <div class="form-section">
+      <div class="form-section-title">Basic Information</div>
+      <div class="form-row single"><label>Title *</label><input type="text" id="f-title" placeholder="e.g. Akhand Path Bhog & Kirtan Darbar"></div>
+      <div class="form-row">
+        <div><label>Subtitle 1</label><input type="text" id="f-sub1" placeholder="Optional subtitle"></div>
+        <div><label>Subtitle 2</label><input type="text" id="f-sub2" placeholder="Optional subtitle"></div>
+      </div>
+      <div class="form-row single">
+        <label>Two Lines of Gurbani (Gurmukhi) *</label>
+        <textarea id="f-gurbani" class="gurmukhi" placeholder="ਗੁਰਬਾਣੀ ਦੀਆਂ ਦੋ ਪੰਕਤੀਆਂ ਲਿਖੋ..." rows="2"></textarea>
+      </div>
+      <div class="form-row single">
+        <label>Background Image (optional)</label>
+        <div class="file-input-wrap" onclick="document.getElementById('f-bgimg').click()">
+          <input type="file" id="f-bgimg" accept="image/*" onchange="handleBgImage(this)">
+          <div id="f-bgimg-label">📷 Click to upload background image</div>
+          <div class="upload-progress" id="bg-progress"><div class="upload-bar" id="bg-bar"></div></div>
+        </div>
+        <img id="bg-preview" class="photo-preview" alt="Background preview">
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Event Details</div>
+      <div class="form-row single">
+        <div class="row-header">
+          <label style="margin:0">Event Dates with Timings * <span style="font-weight:400;color:var(--text3)">(dd/mm/yyyy)</span></label>
+          <button class="add-more-btn" style="width:auto;margin:0;padding:.3rem .75rem;font-size:.75rem" onclick="addEventDate()">+ Add Date</button>
+        </div>
+        <div id="event-dates-list" style="margin-top:.5rem"></div>
+        <div id="clash-summary" style="color:var(--danger);font-size:.75rem;margin-top:.3rem;display:none">⚠️ Date/time clash detected. Please review highlighted entries.</div>
+      </div>
+      <div class="form-row">
+        <div><label>City *</label><input type="text" id="f-city" placeholder="e.g. Chandigarh"></div>
+        <div><label>Venue / Place *</label><input type="text" id="f-place" placeholder="Gurudwara name or full address"></div>
+      </div>
+      <div class="form-row single">
+        <label>Google Maps Link (paste venue-specific link)</label>
+        <input type="text" id="f-maplink" placeholder="https://maps.google.com/?q=Gurdwara+Name+City">
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Organiser Details</div>
+      <div class="form-row single"><label>Organiser Name(s) *</label><input type="text" id="f-orgname" placeholder="Name of organiser or organisation"></div>
+      <div class="row-header" style="margin-bottom:.4rem">
+        <label style="margin:0">Contact Numbers</label>
+        <button class="add-more-btn" style="width:auto;margin:0;padding:.28rem .65rem;font-size:.73rem" onclick="addPhone()">+ Add</button>
+      </div>
+      <div id="phones-list">
+        <div class="phone-row"><input type="tel" placeholder="+91 98765 43210"><button class="remove-btn" onclick="removePhone(this)" type="button">✕</button></div>
+      </div>
+      <div style="margin-top:.7rem"><label>Reason for Organising *</label><textarea id="f-reason" placeholder="Brief description of the occasion…" rows="3"></textarea></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Raagis (Hymn Singers)</div>
+      <div id="raagis-list"></div>
+      <button class="add-more-btn" onclick="addRaagi()" type="button">+ Add Raagi</button>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-cancel-form" onclick="showPage('home')">Cancel</button>
+      <button class="btn-preview" onclick="previewForm()">Preview</button>
+      <button class="btn-submit" id="form-save-btn" onclick="submitForm()">Save Darbar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN USERS PAGE -->
+<div id="page-admin" class="page">
+  <div class="admin-wrap">
+    <div class="admin-title crimson">👥 User Management</div>
+    <div class="add-user-form">
+      <div class="add-user-title">Add New Editor User</div>
+      <div class="user-form-row">
+        <div><label>Full Name *</label><input type="text" id="new-user-name" placeholder="e.g. Gurpreet Singh"></div>
+        <div><label>Email Address *</label><input type="email" id="new-user-email" placeholder="editor@email.com"></div>
+        <div><label>Role</label>
+          <select id="new-user-role">
+            <option value="editor">Editor (Add/Edit/Delete)</option>
+            <option value="admin">Admin (Full Access + Users)</option>
+          </select>
+        </div>
+        <div style="padding-top:1.2rem"><button class="btn-submit" onclick="addUser()" style="width:100%;padding:.5rem .8rem">+ Add User</button></div>
+      </div>
+      <div id="add-user-msg" style="margin-top:.6rem;font-size:.8rem"></div>
+    </div>
+    <div class="sec-header"><div class="sec-line"></div><div class="sec-dot"></div><div class="sec-title">All Users</div><div class="sec-dot"></div><div class="sec-line"></div></div>
+    <div style="overflow-x:auto">
+      <table class="users-table" id="users-table">
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added On</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+    <div id="users-empty" class="empty" style="display:none"><div class="empty-icon">👤</div><div>No users added yet.</div></div>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div id="preview-modal" style="display:none" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Preview Darbar</h3><button class="modal-close" onclick="closeModal('preview-modal')">✕</button></div>
+    <div class="modal-body" id="preview-content"></div>
+    <div class="modal-actions">
+      <button class="btn-back" onclick="closeModal('preview-modal')">Edit</button>
+      <button class="btn-confirm" onclick="confirmSave()" id="confirm-save-btn">Confirm & Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div id="delete-modal" style="display:none" class="modal-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Delete this Darbar?</div>
+    <div class="confirm-desc" id="delete-modal-desc">This cannot be undone.</div>
+    <div class="confirm-btns">
+      <button class="btn-back" onclick="closeModal('delete-modal')">Cancel</button>
+      <button class="btn-danger" onclick="confirmDelete()">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div id="share-modal" style="display:none" class="modal-overlay">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header"><h3 id="share-modal-title">Share</h3><button class="modal-close" onclick="closeModal('share-modal')">✕</button></div>
+    <div class="modal-body">
+      <p style="font-size:.85rem;color:var(--text2);margin-bottom:1rem" id="share-modal-desc"></p>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <button class="share-btn wa" onclick="doShare('wa')" style="justify-content:center;padding:.55rem;font-size:.85rem">📱 Share on WhatsApp</button>
+        <button class="share-btn fb" onclick="doShare('fb')" style="justify-content:center;padding:.55rem;font-size:.85rem">📘 Share on Facebook</button>
+        <button class="share-btn tw" onclick="doShare('tw')" style="justify-content:center;padding:.55rem;font-size:.85rem">🐦 Share on X (Twitter)</button>
+        <button class="share-btn cp" onclick="doShare('cp')" style="justify-content:center;padding:.55rem;font-size:.85rem">🔗 Copy Link & Text</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+
+// ═══════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyB9XhASJ0KrCyHXSHDHNQA5bNt93pWwwzc",
+  authDomain: "kirtan-darbar-061261.firebaseapp.com",
+  projectId: "kirtan-darbar-061261",
+  storageBucket: "kirtan-darbar-061261.firebasestorage.app",
+  messagingSenderId: "825574941811",
+  appId: "1:825574941811:web:8ce56983692286e4b97606"
+};
+const EMAILJS_SERVICE  = 'service_061261';
+const EMAILJS_TEMPLATE = 'template_c7ndtbe';
+const EMAILJS_KEY      = 'nizSPBQwHXJ1_6m07';
+const SUPER_ADMIN_EMAIL = 'bawa.tejinder@gmail.com'; // ← CHANGE THIS TO YOUR EMAIL
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+const storage = getStorage(app);
+emailjs.init(EMAILJS_KEY);
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let darbars=[], users=[];
+let currentUser=null;
+let otpCode='', otpEmail='', otpExpiry=0;
+let editingId=null, deleteTargetId=null;
+let eventDateEntries=[]; // [{id, date_iso, startTime, endTime}]
+let eventDateCount=0;
+let raagiCount=0;
+let bgImageFile=null, bgImageUrl='';
+let raagiImageFiles={}, raagiImageUrls={};
+let currentShareText='', currentShareUrl='';
+let currentFlyerDarbarId=null;
+
+// ═══════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════
+function parseDDMMYYYY(str){
+  if(!str)return null;
+  const p=str.split('/');
+  if(p.length===3&&p[0].length<=2&&p[1].length<=2&&p[2].length===4){
+    return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+  }
+  return null;
+}
+function isoToDDMMYYYY(iso){
+  if(!iso)return '';
+  const p=iso.split('-');
+  return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:iso;
+}
+function fmtTime(s){if(!s)return '';const[h,m]=s.split(':');const hr=parseInt(h);return `${hr%12||12}:${m} ${hr>=12?'PM':'AM'}`;}
+function esc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function getPrimaryDate(d){
+  if(d.eventDates&&d.eventDates.length>0)return d.eventDates[0].date;
+  if(d.dates&&d.dates.length>0)return d.dates[0];
+  return d.date||'';
+}
+function showToast(msg,dur=3500){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),dur);}
+function closeModal(id){document.getElementById(id).style.display='none';}
+function showErr(id,msg){const el=document.getElementById(id);if(el){el.textContent=msg;el.style.display='block';}}
+function hideMsg(id){const el=document.getElementById(id);if(el)el.style.display='none';}
+function showSuccess(id,msg){const el=document.getElementById(id);if(el){el.textContent=msg;el.style.display='block';}}
+function isEditor(){return currentUser&&(currentUser.role==='editor'||currentUser.role==='admin');}
+function isAdmin(){return currentUser&&currentUser.role==='admin';}
+
+// TIME TO MINUTES
+function timeToMins(t){if(!t)return -1;const[h,m]=t.split(':');return parseInt(h)*60+parseInt(m);}
+// CHECK OVERLAP
+function timesOverlap(s1,e1,s2,e2){
+  const a=timeToMins(s1),b=timeToMins(e1),c=timeToMins(s2),d=timeToMins(e2);
+  if(a<0||c<0)return false;
+  const eb=b<0?24*60:b,ed=d<0?24*60:d;
+  return a<ed&&c<eb;
+}
+
+// ═══════════════════════════════════
+// DATE ENTRY (dd/mm/yyyy with start+end time per date)
+// ═══════════════════════════════════
+window.addEventDate = function(){
+  const id = 'evtdate_'+(eventDateCount++);
+  eventDateEntries.push({id, date_iso:'', startTime:'', endTime:''});
+  renderEventDates();
+};
+
+window.removeEventDate = function(id){
+  eventDateEntries = eventDateEntries.filter(e=>e.id!==id);
+  renderEventDates();
+  checkDateClashes();
+};
+
+function renderEventDates(){
+  const container = document.getElementById('event-dates-list');
+  if(!eventDateEntries.length){
+    container.innerHTML='<div style="font-size:.8rem;color:var(--text3);padding:.5rem 0">No dates added yet. Click "+ Add Date" to begin.</div>';
+    return;
+  }
+  container.innerHTML = eventDateEntries.map((e,idx)=>`
+    <div class="event-date-block" id="block_${e.id}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+        <span style="font-size:.78rem;font-weight:600;color:var(--text2)">Date ${idx+1}</span>
+        <button class="remove-btn" onclick="removeEventDate('${e.id}')">✕ Remove</button>
+      </div>
+      <div class="form-row triple">
+        <div>
+          <label>Date (dd/mm/yyyy) *</label>
+          <input type="text" id="date_${e.id}" value="${isoToDDMMYYYY(e.date_iso)}"
+            placeholder="dd/mm/yyyy" maxlength="10"
+            oninput="onDateInput(this,'${e.id}')"
+            style="font-size:.86rem">
+          <div class="field-error" id="derr_${e.id}">Invalid date format</div>
+        </div>
+        <div>
+          <label>Start Time *</label>
+          <input type="time" id="start_${e.id}" value="${e.startTime}"
+            onchange="onTimeChange('${e.id}','start',this.value)">
+          <div class="field-error" id="sterr_${e.id}">Required</div>
+        </div>
+        <div>
+          <label>End Time</label>
+          <input type="time" id="end_${e.id}" value="${e.endTime}"
+            onchange="onTimeChange('${e.id}','end',this.value)">
+          <div class="field-error" id="eterr_${e.id}">End must be after start</div>
+        </div>
+      </div>
+      <div class="clash-warning" id="clash_${e.id}">⚠️ This date/time overlaps with another entry</div>
+    </div>`).join('');
+}
+
+window.onDateInput = function(el, id){
+  let v = el.value.replace(/[^\d\/]/g,'');
+  // Auto-insert slashes
+  if(v.length===2&&!v.includes('/')) v=v+'/';
+  else if(v.length===5&&v.split('/').length===2) v=v+'/';
+  el.value=v;
+  const entry = eventDateEntries.find(e=>e.id===id);
+  if(!entry)return;
+  const derr = document.getElementById('derr_'+id);
+  const iso = parseDDMMYYYY(v);
+  if(iso){entry.date_iso=iso;el.style.borderColor='';if(derr)derr.style.display='none';}
+  else{entry.date_iso='';if(v.length>0&&derr)derr.style.display='block';}
+  checkDateClashes();
+};
+
+window.onTimeChange = function(id, which, val){
+  const entry = eventDateEntries.find(e=>e.id===id);
+  if(!entry)return;
+  if(which==='start') entry.startTime=val;
+  else entry.endTime=val;
+  // Validate end > start
+  if(entry.startTime&&entry.endTime){
+    const s=timeToMins(entry.startTime),en=timeToMins(entry.endTime);
+    const eterr=document.getElementById('eterr_'+id);
+    if(en<=s){if(eterr)eterr.style.display='block';document.getElementById('end_'+id).style.borderColor='var(--danger)';}
+    else{if(eterr)eterr.style.display='none';document.getElementById('end_'+id).style.borderColor='';}
+  }
+  checkDateClashes();
+};
+
+function checkDateClashes(){
+  let hasClash=false;
+  // Reset all clash warnings
+  eventDateEntries.forEach(e=>{const c=document.getElementById('clash_'+e.id);if(c)c.style.display='none';const b=document.getElementById('block_'+e.id);if(b)b.style.borderColor='';});
+  // Check each pair
+  for(let i=0;i<eventDateEntries.length;i++){
+    for(let j=i+1;j<eventDateEntries.length;j++){
+      const a=eventDateEntries[i],b=eventDateEntries[j];
+      if(a.date_iso&&b.date_iso&&a.date_iso===b.date_iso){
+        if(timesOverlap(a.startTime,a.endTime,b.startTime,b.endTime)){
+          hasClash=true;
+          [a.id,b.id].forEach(id=>{
+            const c=document.getElementById('clash_'+id);if(c)c.style.display='block';
+            const bl=document.getElementById('block_'+id);if(bl)bl.style.borderColor='var(--danger)';
+          });
+        }
+      }
+    }
+  }
+  // Also check raagi clashes
+  checkRaagiClashes();
+  const summary=document.getElementById('clash-summary');
+  if(summary)summary.style.display=hasClash?'block':'none';
+  return hasClash;
+}
+
+function checkRaagiClashes(){
+  const blocks=[...document.querySelectorAll('#raagis-list .raagi-block')];
+  // Reset
+  blocks.forEach(b=>{const w=b.querySelector('.raagi-clash');if(w)w.style.display='none';b.style.borderColor='';});
+  // Group by date
+  const byDate={};
+  blocks.forEach(b=>{
+    const d=b.querySelector('.r-date').value;
+    const s=b.querySelector('.r-time-from').value;
+    const en=b.querySelector('.r-time-to').value;
+    if(!d||!s)return;
+    if(!byDate[d])byDate[d]=[];
+    byDate[d].push({el:b,s,en});
+  });
+  Object.values(byDate).forEach(arr=>{
+    for(let i=0;i<arr.length;i++)for(let j=i+1;j<arr.length;j++){
+      if(timesOverlap(arr[i].s,arr[i].en,arr[j].s,arr[j].en)){
+        [arr[i].el,arr[j].el].forEach(el=>{
+          const w=el.querySelector('.raagi-clash');if(w)w.style.display='block';
+          el.style.borderColor='var(--danger)';
+        });
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════
+// AUTH
+// ═══════════════════════════════════
+window.showStep = function(stepId){
+  document.querySelectorAll('.auth-step').forEach(s=>s.classList.remove('show'));
+  document.getElementById(stepId).classList.add('show');
+  ['email-error','otp-error','otp-success'].forEach(id=>hideMsg(id));
+};
+window.sendOTP = async function(){
+  const email=document.getElementById('login-email').value.trim().toLowerCase();
+  if(!email||!email.includes('@')){showErr('email-error','Please enter a valid email address.');return;}
+  hideMsg('email-error');
+  const btn=document.getElementById('send-otp-btn');btn.disabled=true;btn.textContent='Sending OTP…';
+  let userDoc=null;
+  try{const snap=await getDoc(doc(db,'users',email));if(snap.exists())userDoc=snap.data();}catch(e){}
+  if(!userDoc&&email!==SUPER_ADMIN_EMAIL.toLowerCase()){
+    showErr('email-error','This email is not registered. Please contact the admin.');
+    btn.disabled=false;btn.textContent='Send OTP Code';return;
+  }
+  otpCode=Math.floor(100000+Math.random()*900000).toString();
+  otpEmail=email;otpExpiry=Date.now()+10*60*1000;
+  try{
+    await emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{email:email,to_name:userDoc?userDoc.name:'Admin',passcode:otpCode,time:'10 minutes'});
+    document.getElementById('otp-sub').textContent=`Enter the 6-digit code sent to ${email}`;
+    showStep('step-otp');document.getElementById('otp0').focus();
+  }catch(e){showErr('email-error','Failed to send OTP. Check EmailJS settings.');console.error(e);}
+  btn.disabled=false;btn.textContent='Send OTP Code';
+};
+window.resendOTP=async function(){
+  const btn=document.getElementById('resend-btn');btn.disabled=true;btn.textContent='Sending…';
+  otpCode=Math.floor(100000+Math.random()*900000).toString();otpExpiry=Date.now()+10*60*1000;
+  try{
+    const snap=await getDoc(doc(db,'users',otpEmail));const name=snap.exists()?snap.data().name:'Admin';
+    await emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{email:otpEmail,to_name:name,passcode:otpCode,time:otpExpiry});
+    showSuccess('otp-success','New OTP sent!');for(let i=0;i<6;i++)document.getElementById('otp'+i).value='';document.getElementById('otp0').focus();
+  }catch(e){showErr('otp-error','Failed to resend.');}
+  btn.disabled=false;btn.textContent='Resend OTP';
+};
+window.otpInput=function(el,idx){el.value=el.value.replace(/\D/g,'');if(el.value&&idx<5)document.getElementById('otp'+(idx+1)).focus();if(idx===5&&el.value){const code=[...Array(6)].map((_,i)=>document.getElementById('otp'+i).value).join('');if(code.length===6)verifyOTP();}};
+window.otpKeydown=function(el,idx){if(event.key==='Backspace'&&!el.value&&idx>0)document.getElementById('otp'+(idx-1)).focus();};
+window.verifyOTP=async function(){
+  const entered=[...Array(6)].map((_,i)=>document.getElementById('otp'+i).value).join('');
+  hideMsg('otp-error');hideMsg('otp-success');
+  if(entered.length<6){showErr('otp-error','Please enter all 6 digits.');return;}
+  if(Date.now()>otpExpiry){showErr('otp-error','OTP expired. Request a new one.');return;}
+  if(entered!==otpCode){showErr('otp-error','Incorrect OTP. Please try again.');return;}
+  const btn=document.getElementById('verify-otp-btn');btn.disabled=true;btn.textContent='Verifying…';
+  try{
+    if(otpEmail===SUPER_ADMIN_EMAIL.toLowerCase()){
+      await setDoc(doc(db,'users',otpEmail),{name:'Super Admin',email:otpEmail,role:'admin',createdAt:serverTimestamp()},{merge:true});
+      currentUser={email:otpEmail,name:'Super Admin',role:'admin'};
+    }else{
+      const snap=await getDoc(doc(db,'users',otpEmail));const data=snap.data();
+      if(data.active===false){showErr('otp-error','Your account has been deactivated. Contact admin.');btn.disabled=false;btn.textContent='Verify & Login';return;}
+      currentUser={email:otpEmail,name:data.name,role:data.role};
+    }
+    document.getElementById('auth-screen').classList.remove('show');
+    updateUserUI();loadUsers();showToast(`Welcome, ${currentUser.name}! ☬`);
+  }catch(e){showErr('otp-error','Login error: '+e.message);}
+  btn.disabled=false;btn.textContent='Verify & Login';
+};
+window.skipLogin=function(){currentUser=null;document.getElementById('auth-screen').classList.remove('show');updateUserUI();};
+window.handleAuthBtn=function(){if(currentUser){currentUser=null;updateUserUI();showToast('Logged out');}else{document.getElementById('auth-screen').classList.add('show');showStep('step-choose');}};
+function updateUserUI(){
+  const has=isEditor();
+  document.getElementById('nav-add-btn').style.display=has?'inline-block':'none';
+  document.getElementById('nb-admin').style.display=isAdmin()?'inline-block':'none';
+  const badge=document.getElementById('user-badge');
+  if(currentUser){badge.style.display='inline-flex';document.getElementById('user-badge-text').textContent=currentUser.name+' ('+currentUser.role+')';}
+  else badge.style.display='none';
+  document.getElementById('auth-nav-btn').textContent=currentUser?'Logout':'Login';
+  renderHome();
+}
+
+// ═══════════════════════════════════
+// USER MANAGEMENT
+// ═══════════════════════════════════
+window.addUser=async function(){
+  const name=document.getElementById('new-user-name').value.trim();
+  const email=document.getElementById('new-user-email').value.trim().toLowerCase();
+  const role=document.getElementById('new-user-role').value;
+  const msg=document.getElementById('add-user-msg');
+  if(!name||!email){msg.style.color='var(--danger)';msg.textContent='Name and email required.';return;}
+  try{
+    await setDoc(doc(db,'users',email),{name,email,role,active:true,createdAt:serverTimestamp(),createdBy:currentUser.email});
+    msg.style.color='var(--success)';msg.textContent=`✓ ${name} added as ${role}!`;
+    document.getElementById('new-user-name').value='';document.getElementById('new-user-email').value='';
+    setTimeout(()=>msg.textContent='',3000);
+  }catch(e){msg.style.color='var(--danger)';msg.textContent='Error: '+e.message;}
+};
+window.toggleUserStatus=async function(email,current){
+  try{await updateDoc(doc(db,'users',email),{active:!current});showToast(current?'User deactivated':'User activated');}
+  catch(e){showToast('Error: '+e.message);}
+};
+window.removeUser=async function(email){
+  if(!confirm('Remove this user?'))return;
+  try{await deleteDoc(doc(db,'users',email));showToast('User removed');}
+  catch(e){showToast('Error: '+e.message);}
+};
+async function loadUsers(){
+  if(!isAdmin())return;
+  try{onSnapshot(collection(db,'users'),(snap)=>{users=snap.docs.map(d=>({id:d.id,...d.data()}));renderUsersTable();});}
+  catch(e){console.error(e);}
+}
+function renderUsersTable(){
+  const tbody=document.getElementById('users-tbody');
+  const empty=document.getElementById('users-empty');
+  if(!users.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=users.map(u=>`<tr>
+    <td>${esc(u.name)}</td><td>${esc(u.email)}</td>
+    <td><span class="role-badge ${u.role==='admin'?'role-admin':'role-editor'}">${u.role}</span></td>
+    <td>${u.createdAt?new Date(u.createdAt.seconds*1000).toLocaleDateString('en-IN'):'—'}</td>
+    <td><span class="${u.active!==false?'status-active':'status-inactive'}">${u.active!==false?'● Active':'● Inactive'}</span></td>
+    <td style="display:flex;gap:.3rem;flex-wrap:wrap">
+      ${u.email!==SUPER_ADMIN_EMAIL?`
+        <button class="btn-edit" onclick="toggleUserStatus('${esc(u.email)}',${u.active!==false})" style="font-size:.7rem;padding:.2rem .55rem">${u.active!==false?'Deactivate':'Activate'}</button>
+        <button class="btn-delete" onclick="removeUser('${esc(u.email)}')" style="font-size:.7rem;padding:.2rem .55rem">Remove</button>
+      `:'<span style="font-size:.75rem;color:var(--text3)">Super Admin</span>'}
+    </td></tr>`).join('');
+}
+
+// ═══════════════════════════════════
+// FIREBASE REALTIME
+// ═══════════════════════════════════
+function startRealtimeListener(){
+  try{
+    const q=query(collection(db,'darbars'),orderBy('createdAt','desc'));
+    onSnapshot(q,(snap)=>{
+      darbars=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderHome();
+      document.getElementById('db-dot').classList.remove('offline');
+      document.getElementById('db-label').textContent='Live';
+    },(err)=>{document.getElementById('db-dot').classList.add('offline');document.getElementById('db-label').textContent='Offline';});
+  }catch(e){document.getElementById('db-dot').classList.add('offline');}
+}
+
+// ═══════════════════════════════════
+// IMAGE COMPRESSION
+// ═══════════════════════════════════
+async function compressImage(file,maxW=800,maxH=800,q=0.75){
+  return new Promise(resolve=>{
+    const img=new Image();const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);let{width,height}=img;
+      if(width>maxW||height>maxH){const r=Math.min(maxW/width,maxH/height);width=Math.round(width*r);height=Math.round(height*r);}
+      const c=document.createElement('canvas');c.width=width;c.height=height;
+      c.getContext('2d').drawImage(img,0,0,width,height);
+      c.toBlob(blob=>{resolve(new File([blob&&blob.size<file.size?blob:file],file.name,{type:'image/jpeg'}));},'image/jpeg',q);
+    };
+    img.onerror=()=>resolve(file);img.src=url;
+  });
+}
+async function uploadImage(file,path,barId,wrapId){
+  if(wrapId)document.getElementById(wrapId).style.display='block';
+  if(barId)document.getElementById(barId).style.width='5%';
+  const compressed=await compressImage(file);
+  return new Promise((resolve,reject)=>{
+    const task=uploadBytesResumable(ref(storage,path),compressed);
+    task.on('state_changed',s=>{const pct=5+(s.bytesTransferred/s.totalBytes)*95;if(barId)document.getElementById(barId).style.width=pct+'%';},
+    reject,async()=>{if(wrapId)document.getElementById(wrapId).style.display='none';resolve(await getDownloadURL(task.snapshot.ref));});
+  });
+}
+
+// ═══════════════════════════════════
+// PAGE NAV
+// ═══════════════════════════════════
+window.showPage=function(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById('nb-'+p);if(nb)nb.classList.add('active');
+  if(p==='home')renderHome();
+  if(p==='search'){document.getElementById('search-input').value='';document.getElementById('search-results').innerHTML='';document.getElementById('results-count').textContent='';}
+  if(p==='admin')renderUsersTable();
+};
+window.goHome=()=>showPage('home');
+
+// ═══════════════════════════════════
+// RENDER HOME
+// ═══════════════════════════════════
+function renderHome(filter=''){
+  const now=new Date().toISOString().split('T')[0];
+  let upcoming=darbars.filter(d=>getPrimaryDate(d)>=now);
+  let past=darbars.filter(d=>getPrimaryDate(d)<now);
+  upcoming.sort((a,b)=>getPrimaryDate(a).localeCompare(getPrimaryDate(b)));
+  past.sort((a,b)=>getPrimaryDate(b).localeCompare(getPrimaryDate(a)));
+  if(filter){const f=filter.toLowerCase();upcoming=upcoming.filter(d=>mf(d,f));past=past.filter(d=>mf(d,f));}
+  renderCards('upcoming-cards',upcoming,'upcoming-empty',!upcoming.length);
+  renderCards('past-cards',past,'past-empty',!past.length);
+}
+function mf(d,f){return d.title.toLowerCase().includes(f)||d.city.toLowerCase().includes(f)||d.place.toLowerCase().includes(f)||(d.orgName||'').toLowerCase().includes(f);}
+window.liveFilter=v=>renderHome(v);
+function renderCards(cId,list,eId,isEmpty){
+  const c=document.getElementById(cId),e=document.getElementById(eId);
+  c.innerHTML='';if(isEmpty){e.style.display='block';return;}e.style.display='none';
+  list.forEach(d=>c.appendChild(makeCard(d)));
+}
+function makeCard(d){
+  const now=new Date().toISOString().split('T')[0];
+  const isUpcoming=getPrimaryDate(d)>=now;
+  const div=document.createElement('div');div.className='darbar-card';
+  const datesStr=getDatesStr(d);
+  const gLines=d.gurbani?d.gurbani.split('\n'):[''];
+  div.innerHTML=`
+    <div class="card-click" onclick="showDetail('${d.id}')">
+      <div class="card-bg" ${d.bgImg?`style="background:url('${d.bgImg}') center/cover"`:''}>${d.bgImg?`<img src="${d.bgImg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5" loading="lazy">`:''}
+        <div class="card-bg-text">${esc(gLines[0]||'☬')}</div>
+        <div class="card-badge ${isUpcoming?'badge-upcoming':'badge-past'}">${isUpcoming?'Upcoming':'Past'}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${esc(d.title)}</div>
+        ${d.sub1?`<div class="card-sub">${esc(d.sub1)}</div>`:''}
+        <div class="card-meta">
+          <div class="meta-row">📅 ${esc(datesStr)}</div>
+          <div class="meta-row">📍 ${esc(d.city)}</div>
+          <div class="meta-row">🏛️ ${esc(d.place)}</div>
+        </div>
+        ${d.raagis&&d.raagis.length?`<div class="card-raagis">${d.raagis.map(r=>`<span class="raagi-chip">${esc(r.name)}</span>`).join('')}</div>`:''}
+      </div>
+    </div>
+    ${isEditor()?`<div class="editor-actions">
+      <button class="btn-edit" onclick="startEdit('${d.id}')">✏️ Edit</button>
+      <button class="btn-delete" onclick="promptDelete('${d.id}')">🗑️ Delete</button>
+      <button class="btn-flyer" onclick="downloadFlyer('${d.id}')">📄 Flyer</button>
+    </div>`:''}`; 
+  return div;
+}
+
+function getDatesStr(d){
+  if(d.eventDates&&d.eventDates.length>0){
+    return d.eventDates.map(e=>`${isoToDDMMYYYY(e.date)}${e.startTime?' '+fmtTime(e.startTime):''}${e.endTime?' – '+fmtTime(e.endTime):''}`).join(' | ');
+  }
+  if(d.dates&&d.dates.length>0)return d.dates.map(isoToDDMMYYYY).join(', ');
+  return isoToDDMMYYYY(d.date||'');
+}
+
+// ═══════════════════════════════════
+// DETAIL VIEW
+// ═══════════════════════════════════
+window.showDetail=function(id){
+  const d=darbars.find(x=>x.id===id);if(!d)return;
+  currentFlyerDarbarId=id;
+  showPage('detail');
+  const bi=document.getElementById('detail-bg-img');
+  if(d.bgImg){bi.src=d.bgImg;bi.style.display='block';}else bi.style.display='none';
+  document.getElementById('detail-gurbani').textContent=d.gurbani||'';
+  document.getElementById('detail-title').textContent=d.title;
+  document.getElementById('detail-sub1').textContent=d.sub1||'';
+  document.getElementById('detail-sub2').textContent=d.sub2||'';
+
+  // Build event dates info
+  let datesHtml='';
+  if(d.eventDates&&d.eventDates.length>0){
+    datesHtml=d.eventDates.map(e=>`<div style="font-size:.82rem;padding:.15rem 0">${isoToDDMMYYYY(e.date)}${e.startTime?' · '+fmtTime(e.startTime):''}${e.endTime?' – '+fmtTime(e.endTime):''}</div>`).join('');
+  }else{
+    const ds=getDatesStr(d);datesHtml=`<div>${esc(ds)}</div>`;
+  }
+
+  const mh=d.mapLink?`<button class="map-link" onclick="openMap('${esc(d.mapLink)}')">📍 Open in Google Maps</button>`:'';
+  document.getElementById('detail-info-grid').innerHTML=`
+    <div class="info-card"><div class="info-label">Date(s) & Timings</div><div class="info-value">${datesHtml}</div></div>
+    <div class="info-card"><div class="info-label">City</div><div class="info-value">${esc(d.city)}</div></div>
+    <div class="info-card"><div class="info-label">Venue</div><div class="info-value">${esc(d.place)}${mh?'<br>'+mh:''}</div></div>`;
+
+  const rg=document.getElementById('detail-raagis');rg.innerHTML='';
+  (d.raagis||[]).forEach(r=>{
+    const ini=r.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const c=document.createElement('div');c.className='raagi-card';
+    c.innerHTML=`<div class="raagi-photo">${r.photo?`<img src="${r.photo}" alt="${esc(r.name)}" loading="lazy">`:`<span class="raagi-initials">${ini}</span>`}</div>
+      <div class="raagi-info"><div class="raagi-name">${esc(r.name)}</div>
+        ${r.title?`<div class="raagi-title-badge">${esc(r.title)}</div>`:''}
+        ${r.desc?`<div class="raagi-desc">${esc(r.desc)}</div>`:''}
+        ${(r.timeFrom||r.timeTo||r.date)?`<div class="raagi-timing">🕐 ${r.date?isoToDDMMYYYY(r.date)+' ':''} ${r.timeFrom?fmtTime(r.timeFrom):''} ${r.timeTo?'– '+fmtTime(r.timeTo):''}</div>`:''}
+        ${r.contact?`<div class="raagi-timing">📞 ${esc(r.contact)}</div>`:''}
+      </div>`;
+    rg.appendChild(c);
+  });
+
+  // Clickable phone numbers
+  const phonesHtml=(d.phones||[]).map(p=>`<span class="contact-chip" onclick="copyPhone('${esc(p)}')" title="Click to copy">📞 ${esc(p)}</span>`).join('');
+  document.getElementById('detail-org').innerHTML=`<div style="font-weight:600;font-size:.92rem;margin-bottom:.45rem">${esc(d.orgName||'')}</div><div class="contacts-list">${phonesHtml}</div><div style="font-size:.7rem;color:var(--text3);margin-top:.4rem">Click any number to copy to clipboard</div>`;
+  document.getElementById('detail-reason-wrap').innerHTML=d.reason?`<div class="org-reason crimson">${esc(d.reason)}</div>`:'';
+  document.getElementById('detail-editor-bar').innerHTML=isEditor()?`<button class="btn-edit" onclick="startEdit('${d.id}')" style="font-size:.73rem;padding:.25rem .65rem">✏️ Edit</button><button class="btn-delete" onclick="promptDelete('${d.id}')" style="font-size:.73rem;padding:.25rem .65rem">🗑️ Delete</button>`:'';
+  document.getElementById('detail-share-bar').innerHTML=`<span style="font-size:.74rem;color:var(--text3);align-self:center">Share:</span>
+    <button class="share-btn wa" onclick="openShareModal('${d.id}','event')">📱 WhatsApp</button>
+    <button class="share-btn fb" onclick="openShareModal('${d.id}','event')">📘 Facebook</button>
+    <button class="share-btn tw" onclick="openShareModal('${d.id}','event')">🐦 X</button>
+    <button class="share-btn cp" onclick="openShareModal('${d.id}','event')">🔗 Copy</button>
+    <button class="share-btn flyer" onclick="downloadFlyer('${d.id}')">📄 Download Flyer</button>`;
+};
+window.openMap=url=>{try{window.open(url,'_blank');}catch(e){}};
+window.copyPhone=function(phone){
+  navigator.clipboard.writeText(phone).then(()=>showToast('📞 '+phone+' copied to clipboard!')).catch(()=>showToast('Phone: '+phone));
+};
+
+// ═══════════════════════════════════
+// FLYER GENERATION (Canvas → PDF)
+// ═══════════════════════════════════
+window.downloadFlyer=async function(id){
+  const d=darbars.find(x=>x.id===id);if(!d)return;
+  showToast('Generating flyer…',5000);
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,H=297;
+  const gold=[201,146,42],deep=[26,14,46],white=[255,255,255],text=[28,16,8],text2=[92,74,42],text3=[140,122,90];
+
+  // Background
+  pdf.setFillColor(...deep);pdf.rect(0,0,W,H,'F');
+
+  // Decorative border
+  pdf.setDrawColor(...gold);pdf.setLineWidth(.5);pdf.rect(8,8,W-16,H-16,'S');
+  pdf.setLineWidth(.2);pdf.rect(10,10,W-20,H-20,'S');
+
+  // Ik Onkar
+  pdf.setFontSize(28);pdf.setTextColor(...gold);
+  pdf.setFont('helvetica','bold');pdf.text('1',W/2,28,{align:'center'});
+
+  // Title banner
+  pdf.setFillColor(45,27,78);pdf.rect(15,32,W-30,22,'F');
+  pdf.setFontSize(16);pdf.setTextColor(...white);
+  pdf.setFont('helvetica','bold');
+  const title=d.title||'Kirtan Darbar';
+  pdf.text(title,W/2,43,{align:'center',maxWidth:W-40});
+  if(d.sub1){pdf.setFontSize(10);pdf.setTextColor(...gold);pdf.text(d.sub1,W/2,50,{align:'center'});}
+
+  // Gurbani lines box
+  pdf.setFillColor(55,20,80);pdf.rect(15,57,W-30,18,'F');
+  pdf.setFontSize(10);pdf.setTextColor(240,201,106);
+  const gLines=(d.gurbani||'☬ Waheguru ☬').split('\n');
+  pdf.text(gLines[0]||'',W/2,64,{align:'center',maxWidth:W-40});
+  if(gLines[1])pdf.text(gLines[1],W/2,70,{align:'center',maxWidth:W-40});
+
+  let y=85;
+  // Section: Dates & Timings
+  pdf.setFillColor(...gold);pdf.rect(15,y,W-30,7,'F');
+  pdf.setFontSize(9);pdf.setTextColor(...deep);pdf.setFont('helvetica','bold');
+  pdf.text('DATES & TIMINGS',W/2,y+5,{align:'center'});y+=11;
+
+  pdf.setFont('helvetica','normal');pdf.setTextColor(...white);pdf.setFontSize(10);
+  if(d.eventDates&&d.eventDates.length>0){
+    d.eventDates.forEach(e=>{
+      const timeStr=[e.startTime?fmtTime(e.startTime):'',e.endTime?'– '+fmtTime(e.endTime):''].filter(Boolean).join(' ');
+      pdf.text(`${isoToDDMMYYYY(e.date)}  ${timeStr}`,W/2,y,{align:'center'});y+=6;
+    });
+  }else{pdf.text(getDatesStr(d),W/2,y,{align:'center',maxWidth:W-40});y+=6;}
+  y+=4;
+
+  // Section: Venue
+  pdf.setFillColor(...gold);pdf.rect(15,y,W-30,7,'F');
+  pdf.setFontSize(9);pdf.setTextColor(...deep);pdf.setFont('helvetica','bold');
+  pdf.text('VENUE',W/2,y+5,{align:'center'});y+=11;
+  pdf.setFont('helvetica','normal');pdf.setTextColor(...white);pdf.setFontSize(10);
+  pdf.text(d.place||'',W/2,y,{align:'center',maxWidth:W-40});y+=6;
+  pdf.text(d.city||'',W/2,y,{align:'center'});y+=6;
+  if(d.mapLink){
+    pdf.setTextColor(...gold);pdf.setFontSize(9);
+    pdf.textWithLink('📍 Open in Google Maps',W/2,y,{align:'center',url:d.mapLink});y+=6;
+  }
+  y+=4;
+
+  // Section: Raagis
+  if(d.raagis&&d.raagis.length>0){
+    pdf.setFillColor(...gold);pdf.rect(15,y,W-30,7,'F');
+    pdf.setFontSize(9);pdf.setTextColor(...deep);pdf.setFont('helvetica','bold');
+    pdf.text('RAAGIS',W/2,y+5,{align:'center'});y+=11;
+    pdf.setFont('helvetica','normal');pdf.setTextColor(...white);pdf.setFontSize(9);
+    d.raagis.forEach(r=>{
+      const timeStr=[r.timeFrom?fmtTime(r.timeFrom):'',r.timeTo?'– '+fmtTime(r.timeTo):''].filter(Boolean).join(' ');
+      const line=r.name+(r.title?' ('+r.title+')':'')+(timeStr?' · '+timeStr:'');
+      pdf.text(line,W/2,y,{align:'center',maxWidth:W-40});y+=5;
+    });y+=4;
+  }
+
+  // Section: Organiser
+  pdf.setFillColor(...gold);pdf.rect(15,y,W-30,7,'F');
+  pdf.setFontSize(9);pdf.setTextColor(...deep);pdf.setFont('helvetica','bold');
+  pdf.text('ORGANISED BY',W/2,y+5,{align:'center'});y+=11;
+  pdf.setFont('helvetica','normal');pdf.setTextColor(...white);pdf.setFontSize(10);
+  pdf.text(d.orgName||'',W/2,y,{align:'center',maxWidth:W-40});y+=6;
+
+  // Clickable phone numbers
+  if(d.phones&&d.phones.length>0){
+    pdf.setFontSize(9);pdf.setTextColor(...gold);
+    d.phones.forEach(p=>{
+      pdf.textWithLink('📞 '+p,W/2,y,{align:'center',url:'tel:'+p.replace(/\s/g,'')});y+=5;
+    });y+=3;
+  }
+
+  // Reason
+  if(d.reason){
+    pdf.setFontSize(8.5);pdf.setTextColor(200,180,150);pdf.setFont('helvetica','italic');
+    const lines=pdf.splitTextToSize(d.reason,W-40);
+    pdf.text(lines,W/2,y,{align:'center'});y+=lines.length*4+4;
+  }
+
+  // Footer
+  pdf.setFillColor(...gold);pdf.rect(0,H-18,W,18,'F');
+  pdf.setFontSize(8);pdf.setTextColor(...deep);pdf.setFont('helvetica','normal');
+  pdf.text('Kirtan Darbar — ਕੀਰਤਨ ਦਰਬਾਰ',W/2,H-10,{align:'center'});
+  pdf.text(window.location.href,W/2,H-5,{align:'center'});
+
+  const fname=(d.title||'KirtanDarbar').replace(/[^a-z0-9]/gi,'_').substring(0,30)+'_Flyer.pdf';
+  pdf.save(fname);
+  showToast('✅ Flyer downloaded!');
+};
+
+// ═══════════════════════════════════
+// DELETE
+// ═══════════════════════════════════
+window.promptDelete=function(id){
+  const d=darbars.find(x=>x.id===id);if(!d)return;
+  deleteTargetId=id;
+  document.getElementById('delete-modal-desc').textContent=`"${d.title}" will be permanently deleted.`;
+  document.getElementById('delete-modal').style.display='flex';
+};
+window.confirmDelete=async function(){
+  try{await deleteDoc(doc(db,'darbars',deleteTargetId));closeModal('delete-modal');showPage('home');showToast('Darbar deleted');}
+  catch(e){showToast('Error: '+e.message);}
+  deleteTargetId=null;
+};
+
+// ═══════════════════════════════════
+// FORM — ADD / EDIT
+// ═══════════════════════════════════
+window.startAddNew=function(){editingId=null;resetForm();document.getElementById('form-page-title').textContent='Add New Kirtan Darbar';document.getElementById('form-save-btn').textContent='Save Darbar';showPage('add');};
+window.startEdit=function(id){
+  const d=darbars.find(x=>x.id===id);if(!d)return;
+  editingId=id;resetForm();
+  document.getElementById('form-page-title').textContent='Edit Kirtan Darbar';
+  document.getElementById('form-save-btn').textContent='Update Darbar';
+  document.getElementById('f-title').value=d.title||'';
+  document.getElementById('f-sub1').value=d.sub1||'';
+  document.getElementById('f-sub2').value=d.sub2||'';
+  document.getElementById('f-gurbani').value=d.gurbani||'';
+  document.getElementById('f-city').value=d.city||'';
+  document.getElementById('f-place').value=d.place||'';
+  document.getElementById('f-maplink').value=d.mapLink||'';
+  document.getElementById('f-orgname').value=d.orgName||'';
+  document.getElementById('f-reason').value=d.reason||'';
+  bgImageUrl=d.bgImg||'';
+  if(bgImageUrl){
+    document.getElementById('f-bgimg-label').textContent='✓ Existing image loaded';
+    const prev=document.getElementById('bg-preview');prev.src=bgImageUrl;prev.style.display='block';
+  }
+  // Load event dates
+  if(d.eventDates&&d.eventDates.length>0){
+    d.eventDates.forEach(e=>{
+      const eid='evtdate_'+(eventDateCount++);
+      eventDateEntries.push({id:eid,date_iso:e.date,startTime:e.startTime||'',endTime:e.endTime||''});
+    });
+  }else if(d.dates&&d.dates.length>0){
+    d.dates.forEach(dt=>{
+      const eid='evtdate_'+(eventDateCount++);
+      eventDateEntries.push({id:eid,date_iso:dt,startTime:d.time||'',endTime:d.endtime||''});
+    });
+  }
+  renderEventDates();
+  // Phones
+  const pl=document.getElementById('phones-list');pl.innerHTML='';
+  (d.phones&&d.phones.length?d.phones:['']).forEach(p=>{
+    const row=document.createElement('div');row.className='phone-row';
+    row.innerHTML=`<input type="tel" value="${esc(p)}" placeholder="+91 XXXXX XXXXX"><button class="remove-btn" onclick="removePhone(this)" type="button">✕</button>`;
+    pl.appendChild(row);
+  });
+  // Raagis
+  (d.raagis||[]).forEach(r=>{
+    addRaagi();
+    const blocks=document.querySelectorAll('#raagis-list .raagi-block');
+    const b=blocks[blocks.length-1];
+    b.querySelector('.r-name').value=r.name||'';b.querySelector('.r-title').value=r.title||'';
+    b.querySelector('.r-date').value=r.date||'';b.querySelector('.r-time-from').value=r.timeFrom||'';
+    b.querySelector('.r-time-to').value=r.timeTo||'';b.querySelector('.r-desc').value=r.desc||'';
+    b.querySelector('.r-contact').value=r.contact||'';
+    if(r.photo){
+      const idx=parseInt(b.dataset.idx);raagiImageUrls[idx]=r.photo;
+      b.querySelector('.file-input-wrap span').textContent='✓ Photo loaded';
+      const prev=b.querySelector('.raagi-photo-preview');if(prev){prev.src=r.photo;prev.style.display='block';}
+    }
+  });
+  showPage('add');
+};
+
+window.addPhone=function(){
+  const list=document.getElementById('phones-list');
+  const row=document.createElement('div');row.className='phone-row';
+  row.innerHTML=`<input type="tel" placeholder="+91 XXXXX XXXXX"><button class="remove-btn" onclick="removePhone(this)" type="button">✕</button>`;
+  list.appendChild(row);
+};
+window.removePhone=function(btn){
+  const rows=document.querySelectorAll('#phones-list .phone-row');
+  if(rows.length>1)btn.parentElement.remove();else showToast('At least one number needed');
+};
+
+window.addRaagi=function(){
+  const list=document.getElementById('raagis-list');
+  const idx=raagiCount++;const num=list.children.length+1;
+  const b=document.createElement('div');b.className='raagi-block';b.dataset.idx=idx;
+  b.innerHTML=`<div class="row-header" style="margin-bottom:.7rem">
+    <span style="font-size:.8rem;font-weight:600;color:var(--text2)">Raagi ${num}</span>
+    <button class="remove-btn" onclick="this.closest('.raagi-block').remove();renumberRaagis();checkDateClashes()" type="button">✕ Remove</button>
+  </div>
+  <div class="form-row"><div><label>Raagi Name *</label><input type="text" class="r-name" placeholder="Full name"></div><div><label>Title/Designation</label><input type="text" class="r-title" placeholder="e.g. Hazoori Raagi"></div></div>
+  <div class="form-row triple">
+    <div><label>Date (dd/mm/yyyy)</label>
+      <input type="text" class="r-date-display" placeholder="dd/mm/yyyy" maxlength="10" oninput="formatDateInput(this);checkDateClashes()" style="margin-bottom:.3rem">
+      <input type="hidden" class="r-date">
+    </div>
+    <div><label>From Time</label><input type="time" class="r-time-from" onchange="checkDateClashes()"></div>
+    <div><label>To Time</label><input type="time" class="r-time-to" onchange="checkDateClashes()"></div>
+  </div>
+  <div class="raagi-clash" style="color:var(--danger);font-size:.72rem;margin-bottom:.4rem;display:none">⚠️ Timing overlaps with another Raagi on same date</div>
+  <div class="form-row single"><label>Short Description of Raagi</label><textarea class="r-desc" rows="2" placeholder="Brief introduction…"></textarea></div>
+  <div class="form-row"><div><label>Contact (optional)</label><input type="tel" class="r-contact" placeholder="+91 XXXXX XXXXX"></div>
+  <div><label>Photo (optional)</label>
+    <div class="file-input-wrap" onclick="this.querySelector('input').click()">
+      <input type="file" accept="image/*" onchange="handleRaagiPhoto(this,${idx})">
+      <span style="font-size:.73rem">📷 Upload photo (auto-sized)</span>
+      <div class="upload-progress" id="rp-wrap-${idx}"><div class="upload-bar" id="rp-bar-${idx}"></div></div>
+    </div>
+    <img class="raagi-photo-preview" id="rp-prev-${idx}" alt="Raagi photo preview">
+  </div></div>`;
+  list.appendChild(b);
+};
+window.renumberRaagis=function(){document.querySelectorAll('#raagis-list .raagi-block').forEach((b,i)=>{const s=b.querySelector('.row-header span');if(s)s.textContent='Raagi '+(i+1);});};
+
+// dd/mm/yyyy auto-format for raagi date input
+window.formatDateInput=function(el){
+  let v=el.value.replace(/[^\d\/]/g,'');
+  if(v.length===2&&!v.includes('/'))v=v+'/';
+  else if(v.length===5&&v.split('/').length===2)v=v+'/';
+  el.value=v;
+  // Update hidden ISO field
+  const hidden=el.closest('.raagi-block').querySelector('.r-date');
+  const iso=parseDDMMYYYY(v);
+  if(hidden)hidden.value=iso||'';
+};
+
+window.handleBgImage=async function(input){
+  const file=input.files[0];if(!file)return;
+  const lbl=document.getElementById('f-bgimg-label');lbl.textContent='⏳ Compressing…';
+  const c=await compressImage(file,1200,800,.8);bgImageFile=c;
+  const origKB=Math.round(file.size/1024),compKB=Math.round(c.size/1024);
+  lbl.textContent=`✓ ${file.name} (${origKB}KB→${compKB}KB)`;
+  // Show preview
+  const prev=document.getElementById('bg-preview');
+  const url=URL.createObjectURL(c);prev.src=url;prev.style.display='block';
+};
+window.handleRaagiPhoto=async function(input,idx){
+  const file=input.files[0];if(!file)return;
+  const sp=input.closest('.file-input-wrap').querySelector('span');
+  if(sp)sp.textContent='⏳ Compressing…';
+  const c=await compressImage(file,300,300,.8);raagiImageFiles[idx]=c;
+  const origKB=Math.round(file.size/1024),compKB=Math.round(c.size/1024);
+  if(sp)sp.textContent=`✓ ${file.name} (${origKB}KB→${compKB}KB)`;
+  // Show preview
+  const prev=document.getElementById('rp-prev-'+idx);
+  if(prev){const url=URL.createObjectURL(c);prev.src=url;prev.style.display='block';}
+};
+
+function collectForm(){
+  const phones=[...document.querySelectorAll('#phones-list input')].map(i=>i.value.trim()).filter(Boolean);
+  const raagis=[...document.querySelectorAll('#raagis-list .raagi-block')].map(b=>{
+    const dateDisplay=b.querySelector('.r-date-display');
+    const dateIso=dateDisplay?parseDDMMYYYY(dateDisplay.value)||b.querySelector('.r-date').value:'';
+    return{name:b.querySelector('.r-name').value.trim(),title:b.querySelector('.r-title').value.trim(),
+      date:dateIso,timeFrom:b.querySelector('.r-time-from').value,timeTo:b.querySelector('.r-time-to').value,
+      desc:b.querySelector('.r-desc').value.trim(),contact:b.querySelector('.r-contact').value.trim(),
+      photo:raagiImageUrls[parseInt(b.dataset.idx)]||''};
+  }).filter(r=>r.name);
+  return{title:document.getElementById('f-title').value.trim(),sub1:document.getElementById('f-sub1').value.trim(),
+    sub2:document.getElementById('f-sub2').value.trim(),gurbani:document.getElementById('f-gurbani').value.trim(),
+    bgImg:bgImageUrl,
+    eventDates:eventDateEntries.filter(e=>e.date_iso).map(e=>({date:e.date_iso,startTime:e.startTime,endTime:e.endTime})),
+    city:document.getElementById('f-city').value.trim(),place:document.getElementById('f-place').value.trim(),
+    mapLink:document.getElementById('f-maplink').value.trim(),orgName:document.getElementById('f-orgname').value.trim(),
+    phones,reason:document.getElementById('f-reason').value.trim(),raagis};
+}
+
+window.previewForm=function(){
+  const d=collectForm();
+  if(!d.title||!d.eventDates.length||!d.city||!d.place||!d.orgName||!d.gurbani||!d.reason){showToast('Please fill all required fields (*)');return;}
+  if(checkDateClashes()){showToast('⚠️ Please resolve date/time clashes before saving');return;}
+  const datesHtml=d.eventDates.map(e=>`<div style="font-size:.83rem">${isoToDDMMYYYY(e.date)}${e.startTime?' · '+fmtTime(e.startTime):''}${e.endTime?' – '+fmtTime(e.endTime):''}</div>`).join('');
+  document.getElementById('preview-content').innerHTML=`
+    <div style="background:linear-gradient(135deg,var(--deep2),#4A1A70);border-radius:10px;padding:1.1rem;margin-bottom:.9rem">
+      <div class="gurmukhi" style="color:var(--gold-light);font-size:.88rem;margin-bottom:.45rem;line-height:1.7">${esc(d.gurbani).replace(/\n/g,'<br>')}</div>
+      <div style="font-family:'Crimson Pro',serif;color:white;font-size:1.25rem;font-weight:600">${esc(d.title)}</div>
+      ${d.sub1?`<div style="color:rgba(240,201,106,.7);font-size:.83rem;margin-top:.2rem">${esc(d.sub1)}</div>`:''}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:.9rem">
+      <div class="info-card"><div class="info-label">Date(s) & Timings</div><div class="info-value">${datesHtml}</div></div>
+      <div class="info-card"><div class="info-label">City</div><div class="info-value">${esc(d.city)}</div></div>
+      <div class="info-card" style="grid-column:span 2"><div class="info-label">Venue</div><div class="info-value">${esc(d.place)}</div></div>
+    </div>
+    ${d.raagis.length?`<div style="font-size:.75rem;font-weight:600;color:var(--text2);text-transform:uppercase;margin-bottom:.4rem">Raagis (${d.raagis.length})</div><div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.9rem">${d.raagis.map(r=>`<span class="raagi-chip">${esc(r.name)} ${r.timeFrom?'· '+fmtTime(r.timeFrom):''} ${r.timeTo?'– '+fmtTime(r.timeTo):''}</span>`).join('')}</div>`:''}
+    <div style="font-size:.75rem;font-weight:600;color:var(--text2);text-transform:uppercase;margin-bottom:.35rem">Organiser</div>
+    <div style="font-size:.88rem;margin-bottom:.5rem">${esc(d.orgName)}</div>
+    <div class="org-reason crimson">${esc(d.reason)}</div>`;
+  document.getElementById('confirm-save-btn').textContent=editingId?'Confirm & Update':'Confirm & Save';
+  document.getElementById('preview-modal').style.display='flex';
+};
+window.submitForm=function(){
+  const d=collectForm();
+  if(!d.title||!d.eventDates.length||!d.city||!d.place||!d.orgName||!d.gurbani||!d.reason){showToast('Please fill all required fields (*)');return;}
+  if(checkDateClashes()){showToast('⚠️ Please resolve date/time clashes before saving');return;}
+  previewForm();
+};
+window.confirmSave=async function(){
+  closeModal('preview-modal');
+  const btn=document.getElementById('form-save-btn');btn.disabled=true;btn.textContent='Uploading…';
+  showToast('Saving to Firebase…',8000);
+  try{
+    const d=collectForm();const ts=Date.now();
+    if(bgImageFile)d.bgImg=await uploadImage(bgImageFile,`darbars/${ts}/bg_${bgImageFile.name}`,'bg-bar','bg-progress');
+    const blocks=[...document.querySelectorAll('#raagis-list .raagi-block')];
+    for(let i=0;i<blocks.length;i++){
+      const idx=parseInt(blocks[i].dataset.idx);
+      if(raagiImageFiles[idx]){
+        const f=raagiImageFiles[idx];
+        d.raagis[i]={...d.raagis[i],photo:await uploadImage(f,`darbars/${ts}/raagi_${idx}_${f.name}`,`rp-bar-${idx}`,`rp-wrap-${idx}`)};
+      }
+    }
+    d.updatedBy=currentUser.email;
+    let savedId=editingId;
+    if(editingId){await updateDoc(doc(db,'darbars',editingId),{...d,updatedAt:serverTimestamp()});showToast('Darbar updated! ☬');}
+    else{const ref=await addDoc(collection(db,'darbars'),{...d,createdAt:serverTimestamp(),createdBy:currentUser.email});savedId=ref.id;showToast('Darbar saved! ☬');}
+    resetForm();showPage('home');
+    // Auto-download flyer after save
+    setTimeout(()=>{
+      const saved=darbars.find(x=>x.id===savedId)||{...d,id:savedId};
+      if(saved)downloadFlyer(savedId).catch(()=>{});
+    },1500);
+  }catch(e){showToast('Error: '+e.message);console.error(e);}
+  finally{btn.disabled=false;btn.textContent=editingId?'Update Darbar':'Save Darbar';}
+};
+
+function resetForm(){
+  ['f-title','f-sub1','f-sub2','f-gurbani','f-city','f-place','f-maplink','f-orgname','f-reason'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('f-bgimg-label').textContent='📷 Click to upload background image';
+  const bgPrev=document.getElementById('bg-preview');if(bgPrev)bgPrev.style.display='none';
+  document.getElementById('phones-list').innerHTML='<div class="phone-row"><input type="tel" placeholder="+91 98765 43210"><button class="remove-btn" onclick="removePhone(this)" type="button">✕</button></div>';
+  document.getElementById('raagis-list').innerHTML='';
+  document.getElementById('event-dates-list').innerHTML='';
+  eventDateEntries=[];bgImageFile=null;bgImageUrl='';raagiImageFiles={};raagiImageUrls={};raagiCount=0;editingId=null;
+}
+
+// ═══════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════
+window.goSearch=function(){const v=document.getElementById('home-search').value;showPage('search');document.getElementById('search-input').value=v;if(v)doSearch(v);};
+window.doSearch=function(query){
+  const q=query.toLowerCase().trim();
+  const rc=document.getElementById('results-count'),container=document.getElementById('search-results');
+  if(!q){rc.textContent='';container.innerHTML='';return;}
+  const results=darbars.filter(d=>mf(d,q));
+  results.sort((a,b)=>getPrimaryDate(a).localeCompare(getPrimaryDate(b)));
+  rc.textContent=results.length+' result'+(results.length===1?'':'s')+` for "${query}"`;
+  container.innerHTML='';results.forEach(d=>container.appendChild(makeCard(d)));
+  if(!results.length)container.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><div>No Darbars found for "${esc(query)}"</div></div>`;
+};
+
+// ═══════════════════════════════════
+// SHARE
+// ═══════════════════════════════════
+window.openShareModal=function(id,type){
+  const d=darbars.find(x=>x.id===id);const base=window.location.href.split('?')[0];
+  if(type==='event'&&d){
+    const ds=getDatesStr(d);
+    currentShareText=`☬ Kirtan Darbar\n${d.title}\n📅 ${ds}\n📍 ${d.place}, ${d.city}\nRaagis: ${(d.raagis||[]).map(r=>r.name).join(', ')}\n\n${base}`;
+    document.getElementById('share-modal-title').textContent='Share this Darbar';
+    document.getElementById('share-modal-desc').textContent=`Share "${d.title}" with your Sangat.`;
+  }else{
+    currentShareText=`☬ Kirtan Darbar Website\nFind upcoming Gurbani Kirtan Darbars!\n\n${base}`;
+    document.getElementById('share-modal-title').textContent='Share Kirtan Darbar';
+    document.getElementById('share-modal-desc').textContent='Share with your Sangat.';
+  }
+  currentShareUrl=base;document.getElementById('share-modal').style.display='flex';
+};
+window.shareWebsite=()=>openShareModal(null,'website');
+window.doShare=function(p){
+  const url=encodeURIComponent(currentShareUrl),text=encodeURIComponent(currentShareText);
+  let su='';
+  if(p==='wa')su=`https://api.whatsapp.com/send?text=${text}`;
+  else if(p==='fb')su=`https://www.facebook.com/sharer/sharer.php?u=${url}`;
+  else if(p==='tw')su=`https://twitter.com/intent/tweet?text=${text}`;
+  else if(p==='cp'){navigator.clipboard.writeText(currentShareText).then(()=>showToast('Copied!')).catch(()=>showToast(currentShareUrl));closeModal('share-modal');return;}
+  if(su)try{window.open(su,'_blank');}catch(e){}
+  closeModal('share-modal');
+};
+window.setLang=function(l){document.querySelectorAll('.lang-btn').forEach((b,i)=>b.classList.toggle('active',['en','pa','hi'][i]===l));};
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+async function init(){
+  startRealtimeListener();
+  setTimeout(()=>{
+    document.getElementById('loading-overlay').classList.add('hide');
+    setTimeout(()=>document.getElementById('loading-overlay').style.display='none',500);
+    document.getElementById('auth-screen').classList.add('show');
+  },1800);
+}
+init();
+</script>
+</body>
+</html>
