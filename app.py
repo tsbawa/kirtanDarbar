@@ -12,7 +12,7 @@ def local_css(file_name):
 
 # --- INITIALIZATION ---
 st.set_page_config(page_title="Kirtan Darbar", page_icon="☬")
-local_css("style.css") # Injects your styles right at the start
+local_css("styleDarbar.css") # Injects your styles right at the start
 
 # Firebase Setup
 if not firebase_admin._apps:
